@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Usuários</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; display: flex; min-height: 100vh; background: #f0f2f5; }
+
+    .sidebar {
+      width: 200px; background: #1a1a2e; color: white;
+      display: flex; flex-direction: column; padding: 20px 0; min-height: 100vh;
+    }
+    .sidebar .logo {
+      padding: 0 20px 24px; font-size: 13px; color: #aaa;
+      border-bottom: 1px solid #333; margin-bottom: 16px;
+    }
+    .sidebar .logo span { display: block; font-size: 11px; color: #666; margin-top: 2px; }
+    .sidebar a {
+      display: block; padding: 12px 20px; color: #ccc;
+      text-decoration: none; font-size: 14px; transition: background 0.2s;
+    }
+    .sidebar a:hover { background: #2a2a4a; color: white; }
+    .sidebar a.active { background: #4f6ef7; color: white; }
+
+    .main { flex: 1; padding: 30px; }
+    .main h2 { font-size: 20px; color: #1a1a2e; margin-bottom: 24px; }
+
+    .card {
+      background: white; border-radius: 12px; padding: 30px;
+      max-width: 500px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 30px;
+    }
+    .card h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 20px; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 11px 14px; border: 1px solid #ddd;
+      border-radius: 8px; font-size: 14px; outline: none; transition: border 0.2s;
+    }
+    .field input:focus { border-color: #4f6ef7; }
+
+    .btn {
+      width: 100%; padding: 13px; background: #4f6ef7; color: white;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn:hover { background: #3a5bd9; }
+    .msg { margin-top: 12px; font-size: 13px; color: red; text-align: center; }
+    .msg.ok { color: green; }
+
+    table { width: 100%; border-collapse: collapse; background: white;
+      border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    th { background: #1a1a2e; color: white; padding: 12px 16px; text-align: left; font-size: 13px; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #333; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8f9ff; }
+
+    .btn-excluir {
+      padding: 6px 14px; background: #e74c3c; color: white;
+      border: none; border-radius: 6px; font-size: 12px; cursor: pointer;
+    }
+    .btn-excluir:hover { background: #c0392b; }
+  </style>
+</head>
+<body>
+  <script>
+  if (!localStorage.getItem('token')) {
+    window.location.href = 'index.html';
+  }
+</script>
+
+  <div class="sidebar">
+    <div class="logo">
+      🅿️ Estacionamento<br>Central Park
+      <span>Sistema de Gestão</span>
+    </div>
+    <a href="dashboard.html">🅿 Vagas</a>
+    <a href="cadastro-veiculo.html">🚗 Cadastro de veículo</a>
+    <a href="cadastro-cliente.html">👤 Cadastro de clientes</a>
+    <a href="usuario.html" class="active">⚙️ Usuário</a>
+  </div>
+
+  <div class="main">
+    <h2>⚙️ Gerenciar Usuários</h2>
+
+    <div class="card">
+      <h3>Criar novo usuário</h3>
+
+      <div class="field">
+        <label>Nome</label>
+        <input type="text" id="nome" placeholder="Nome completo">
+      </div>
+      <div class="field">
+        <label>Login (usuário)</label>
+        <input type="text" id="email" placeholder="Ex: joao">
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" id="senha" placeholder="Senha">
+      </div>
+
+      <button class="btn" onclick="criarUsuario()">➕ Criar Usuário</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <h3 style="margin-bottom:16px; color:#1a1a2e;">Usuários cadastrados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>Login</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="tabela"></tbody>
+    </table>
+  </div>
+
+  <script>
+        
+    const token = localStorage.getItem('token');
+
+    async function carregarUsuarios() {
+      const res = await fetch('/api/Auth/usuarios', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const usuarios = await res.json();
+      const tabela = document.getElementById('tabela');
+      tabela.innerHTML = '';
+      usuarios.forEach((u, i) => {
+        tabela.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${u.nome}</td>
+            <td>${u.email}</td>
+            <td><button class="btn-excluir" onclick="excluir(${u.id})">🗑 Excluir</button></td>
+          </tr>`;
+      });
+    }
+
+    async function criarUsuario() {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value.trim();
+      const msg = document.getElementById('msg');
+
+      if (!nome || !email || !senha) {
+        msg.className = 'msg'; msg.textContent = 'Preencha todos os campos.'; return;
+      }
+
+      const res = await fetch('/api/Auth/cadastro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ nome, email, senha })
+      });
+
+      if (res.ok) {
+        msg.className = 'msg ok'; msg.textContent = '✅ Usuário criado com sucesso!';
+        document.getElementById('nome').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('senha').value = '';
+        carregarUsuarios();
+      } else {
+        const erro = await res.text();
+        msg.className = 'msg'; msg.textContent = erro;
+      }
+    }
+
+    async function excluir(id) {
+      if (!confirm('Deseja excluir este usuário?')) return;
+      const res = await fetch(`/api/Auth/usuarios/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) carregarUsuarios();
+    }
+
+    carregarUsuarios();
+  </script>
+</body>
+</html>

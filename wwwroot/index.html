@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestão</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #4f6ef7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 36px;
+      width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    .icon { font-size: 48px; margin-bottom: 12px; }
+    h2 { color: #1a1a2e; font-size: 20px; margin-bottom: 4px; }
+    p { color: #888; font-size: 14px; margin-bottom: 24px; }
+    .input-group {
+      position: relative;
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .input-group input:focus { border-color: #4f6ef7; }
+    .input-group span {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+      font-size: 16px;
+    }
+    .eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #aaa;
+      left: auto;
+    }
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: #4f6ef7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .btn:hover { background: #3a5bd9; }
+    .footer { margin-top: 20px; font-size: 13px; color: #888; }
+    .footer a { color: #4f6ef7; text-decoration: none; font-weight: 600; }
+    .msg { margin-top: 12px; font-size: 13px; color: red; }
+    .msg.ok { color: green; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🚗 🏍️</div>
+    <h2>Sistema de Gestão</h2>
+    <p>Faça login para continuar</p>
+
+    <div class="input-group">
+      <span>👤</span>
+      <input type="text" id="usuario" placeholder="Usuário">
+    </div>
+
+    <div class="input-group">
+      <span>🔒</span>
+      <input type="password" id="senha" placeholder="Senha">
+      <span class="eye" onclick="toggleSenha()">👁</span>
+    </div>
+
+    <button class="btn" onclick="login()">Entrar</button>
+    <div class="msg" id="msg"></div>
+
+    
+  </div>
+
+  <script>
+    function toggleSenha() {
+      const s = document.getElementById('senha');
+      s.type = s.type === 'password' ? 'text' : 'password';
+    }
+
+    async function login() {
+      const usuario = document.getElementById('usuario').value;
+      const senha = document.getElementById('senha').value;
+      const msg = document.getElementById('msg');
+
+      try {
+        const res = await fetch('/api/Auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: usuario, senha })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+localStorage.setItem('token', data.token);
+localStorage.setItem('isAdmin', data.isAdmin ? 'true' : 'false');
+localStorage.setItem('nome', data.nome);
+msg.className = 'msg ok';
+msg.textContent = 'Login realizado com sucesso!';
+setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        } else {
+          msg.className = 'msg';
+          msg.textContent = 'Usuário ou senha incorretos.';
+        }
+      } catch {
+        msg.className = 'msg';
+        msg.textContent = 'Erro ao conectar com o servidor.';
+      }
+    }
+  </script>
+</body>
+</html>

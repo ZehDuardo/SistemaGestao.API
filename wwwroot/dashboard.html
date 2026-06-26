@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estacionamento Central Park</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; display: flex; min-height: 100vh; background: #f0f2f5; }
+
+    .sidebar {
+      width: 200px; background: #1a1a2e; color: white;
+      display: flex; flex-direction: column; padding: 20px 0; min-height: 100vh;
+    }
+    .sidebar .logo {
+      padding: 0 20px 24px; font-size: 13px; color: #aaa;
+      border-bottom: 1px solid #333; margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .sidebar .logo span { display: block; font-size: 11px; color: #666; margin-top: 2px; }
+    .btn-sair-topo {
+      background: #e74c3c; border: none; color: white; border-radius: 50%;
+      width: 32px; height: 32px; cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .btn-sair-topo:hover { background: #c0392b; }
+    .sidebar a {
+      display: block; padding: 12px 20px; color: #ccc;
+      text-decoration: none; font-size: 14px; transition: background 0.2s;
+    }
+    .sidebar a:hover { background: #2a2a4a; color: white; }
+    .sidebar a.active { background: #4f6ef7; color: white; }
+
+    .main { flex: 1; padding: 30px; }
+    .main h2 { font-size: 20px; color: #1a1a2e; margin-bottom: 8px; }
+    .legenda { display: flex; gap: 20px; margin-bottom: 24px; font-size: 13px; }
+    .legenda span { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 14px; height: 14px; border-radius: 3px; }
+    .dot.livre { background: white; border: 2px solid #222; }
+    .dot.ocupada { background: #ffe0e0; border: 2px solid #e74c3c; }
+
+    .vagas {
+      display: grid;
+      grid-template-columns: repeat(6, 90px);
+      gap: 16px;
+    }
+    .vaga {
+      width: 90px; height: 90px; border: 3px solid #222; border-radius: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-weight: bold; color: #222; cursor: pointer; background: white; transition: all 0.2s;
+    }
+    .vaga:hover { background: #e8ecff; border-color: #4f6ef7; }
+    .vaga.ocupada { background: #ffe0e0; border-color: #e74c3c; color: #e74c3c; }
+    .vaga.ocupada:hover { background: #ffc8c8; }
+    .vaga .num { font-size: 24px; font-weight: 700; }
+    .vaga .ico { font-size: 16px; }
+
+    .overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+    .overlay.show { display: flex; }
+    .modal { background: white; border-radius: 16px; padding: 30px; width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .modal h3 { font-size: 18px; color: #1a1a2e; margin-bottom: 20px; }
+    .modal .field { margin-bottom: 16px; }
+    .modal .field label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+    .modal .field select {
+      width: 100%; padding: 11px 14px; border: 1px solid #ddd;
+      border-radius: 8px; font-size: 14px; outline: none; background: white;
+    }
+    .modal .field select:focus { border-color: #4f6ef7; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-entrada { flex: 1; padding: 12px; background: #4f6ef7; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-entrada:hover { background: #3a5bd9; }
+    .btn-saida { flex: 1; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-saida:hover { background: #c0392b; }
+    .btn-cancelar { flex: 1; padding: 12px; background: #eee; color: #555; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .modal-info { background: #f8f9ff; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px; color: #333; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <script>
+  if (!localStorage.getItem('token')) {
+    window.location.href = 'index.html';
+  }
+</script>
+  <div class="sidebar">
+    <div class="logo">
+      <div>🅿️ Estacionamento<br>Central Park<span>Sistema de Gestão</span></div>
+      <button class="btn-sair-topo" onclick="sair()" title="Sair">🚪</button>
+    </div>
+    <a href="dashboard.html" class="active">🅿 Vagas</a>
+    <a href="cadastro-veiculo.html">🚗 Cadastro de veículo</a>
+    <a href="cadastro-cliente.html">👤 Cadastro de clientes</a>
+    <a href="relatorio.html">📊 Relatório</a>
+    <a href="usuario.html">⚙️ Usuário</a>
+  </div>
+
+  <div class="main">
+    <h2>Vagas de estacionamento</h2>
+    <div class="legenda">
+      <span><div class="dot livre"></div> Livre</span>
+      <span><div class="dot ocupada"></div> Ocupada</span>
+    </div>
+    <div class="vagas" id="vagas"></div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h3 id="modalTitulo">Vaga</h3>
+      <div id="modalConteudo"></div>
+      <div class="modal-btns" id="modalBtns"></div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    let ocupacoes = [];
+    let veiculos = [];
+    let clientes = [];
+
+    async function carregarDados() {
+      const [resOcup, resVeic, resCli] = await Promise.all([
+        fetch('/api/Ocupacao/ativas', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/Veiculo', { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch('/api/Cliente', { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+      ocupacoes = await resOcup.json();
+      veiculos = await resVeic.json();
+      clientes = await resCli.json();
+      renderVagas();
+    }
+
+    function renderVagas() {
+      const container = document.getElementById('vagas');
+      container.innerHTML = '';
+      for (let i = 1; i <= 18; i++) {
+        const ocup = ocupacoes.find(o => o.numeroVaga === i);
+        const ico = ocup ? (ocup.veiculo?.tipo === 'Moto' ? '🏍️' : '🚗') : '';
+        const div = document.createElement('div');
+        div.className = 'vaga' + (ocup ? ' ocupada' : '');
+        div.innerHTML = `<span class="num">${i}</span><span class="ico">${ico}</span>`;
+        div.onclick = () => abrirModal(i, ocup);
+        container.appendChild(div);
+      }
+    }
+
+    function abrirModal(numero, ocup) {
+      const titulo = document.getElementById('modalTitulo');
+      const conteudo = document.getElementById('modalConteudo');
+      const btns = document.getElementById('modalBtns');
+
+      if (ocup) {
+        titulo.textContent = `Vaga ${numero} — Ocupada`;
+        conteudo.innerHTML = `
+          <div class="modal-info">
+            ${ocup.veiculo?.tipo === 'Moto' ? '🏍️' : '🚗'} <b>Veículo:</b> ${ocup.veiculo?.modelo || ''} — ${ocup.veiculo?.placa || ''}<br>
+            👤 <b>Cliente:</b> ${ocup.cliente?.nome || ''}<br>
+            🕐 <b>Entrada:</b> ${new Date(ocup.dataEntrada).toLocaleString('pt-BR')}
+          </div>`;
+        btns.innerHTML = `
+          <button class="btn-saida" onclick="registrarSaida(${numero})">🚪 Registrar Saída</button>
+          <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>`;
+      } else {
+        titulo.textContent = `Vaga ${numero} — Livre`;
+        conteudo.innerHTML = `
+          <div class="field">
+            <label>Veículo</label>
+            <select id="selVeiculo">
+              <option value="">Selecione o veículo</option>
+              ${veiculos.map(v => `<option value="${v.id}">${v.placa} — ${v.modelo} (${v.tipo})</option>`).join('')}
+            </select>
+          </div>
+          <div class="field">
+            <label>Cliente</label>
+            <select id="selCliente">
+              <option value="">Selecione o cliente</option>
+              ${clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('')}
+            </select>
+          </div>`;
+        btns.innerHTML = `
+          <button class="btn-entrada" onclick="registrarEntrada(${numero})">✅ Registrar Entrada</button>
+          <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>`;
+      }
+
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    async function registrarEntrada(numero) {
+      const veiculoId = document.getElementById('selVeiculo').value;
+      const clienteId = document.getElementById('selCliente').value;
+      if (!veiculoId || !clienteId) { alert('Selecione o veículo e o cliente!'); return; }
+
+      await fetch('/api/Ocupacao/entrada', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ numeroVaga: numero, veiculoId: parseInt(veiculoId), clienteId: parseInt(clienteId) })
+      });
+
+      fecharModal();
+      carregarDados();
+    }
+
+    async function registrarSaida(numero) {
+      await fetch(`/api/Ocupacao/saida/${numero}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      fecharModal();
+      carregarDados();
+    }
+
+    function fecharModal() {
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    function sair() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('nome');
+      window.location.href = 'index.html';
+    }
+
+    carregarDados();
+  </script>
+</body>
+</html>

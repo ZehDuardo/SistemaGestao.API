@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Veículo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; display: flex; min-height: 100vh; background: #f0f2f5; }
+
+    .sidebar {
+      width: 200px;
+      background: #1a1a2e;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+      min-height: 100vh;
+    }
+    .sidebar .logo {
+      padding: 0 20px 24px;
+      font-size: 13px;
+      color: #aaa;
+      border-bottom: 1px solid #333;
+      margin-bottom: 16px;
+    }
+    .sidebar .logo span { display: block; font-size: 11px; color: #666; margin-top: 2px; }
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      color: #ccc;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .sidebar a:hover { background: #2a2a4a; color: white; }
+    .sidebar a.active { background: #4f6ef7; color: white; }
+
+    .main { flex: 1; padding: 30px; }
+    .main h2 { font-size: 20px; color: #1a1a2e; margin-bottom: 24px; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+      background: white;
+    }
+    .field input:focus { border-color: #4f6ef7; }
+
+    .tipo-group { display: flex; gap: 12px; }
+    .tipo-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      color: #555;
+    }
+    .tipo-btn.selected {
+      border-color: #4f6ef7;
+      background: #eef1ff;
+      color: #4f6ef7;
+      font-weight: 600;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: #4f6ef7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #3a5bd9; }
+    .msg { margin-top: 12px; font-size: 13px; color: red; text-align: center; }
+    .msg.ok { color: green; }
+  </style>
+</head>
+<body>
+  <script>
+  if (!localStorage.getItem('token')) {
+    window.location.href = 'index.html';
+  }
+</script>
+
+  <div class="sidebar">
+    <div class="logo">
+      🅿️ Estacionamento<br>Central Park
+      <span>Sistema de Gestão</span>
+    </div>
+    <a href="dashboard.html">🅿 Vagas</a>
+    <a href="cadastro-veiculo.html" class="active">🚗 Cadastro de veículo</a>
+    <a href="cadastro-cliente.html">👤 Cadastro de clientes</a>
+    <a href="usuario.html">⚙️ Usuário</a>
+  </div>
+
+  <div class="main">
+    <h2>Cadastro de Veículo</h2>
+    <div class="card">
+      <div class="field">
+        <label>Tipo</label>
+        <div class="tipo-group">
+          <button class="tipo-btn" id="btn-carro" onclick="selecionarTipo('Carro')">🚗 Carro</button>
+          <button class="tipo-btn" id="btn-moto" onclick="selecionarTipo('Moto')">🏍️ Moto</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Placa</label>
+        <input type="text" id="placa" placeholder="Ex: ABC-1234 ou GDH2C35" maxlength="8">
+      </div>
+      <div class="field">
+        <label>Modelo</label>
+        <input type="text" id="modelo" placeholder="Ex: Honda Civic">
+      </div>
+      <div class="field">
+        <label>Cor</label>
+        <input type="text" id="cor" placeholder="Ex: Branco">
+      </div>
+      <button class="btn" onclick="salvar()">Salvar Veículo</button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <h3 style="margin: 24px 0 16px; color:#1a1a2e;">Veículos cadastrados</h3>
+    <table style="width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+      <thead>
+        <tr>
+          <th style="background:#1a1a2e; color:white; padding:12px 16px; text-align:left; font-size:13px;">Tipo</th>
+          <th style="background:#1a1a2e; color:white; padding:12px 16px; text-align:left; font-size:13px;">Placa</th>
+          <th style="background:#1a1a2e; color:white; padding:12px 16px; text-align:left; font-size:13px;">Modelo</th>
+          <th style="background:#1a1a2e; color:white; padding:12px 16px; text-align:left; font-size:13px;">Cor</th>
+          <th style="background:#1a1a2e; color:white; padding:12px 16px; text-align:left; font-size:13px;">Ação</th>
+        </tr>
+      </thead>
+      <tbody id="tabela"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let tipoSelecionado = '';
+
+    function selecionarTipo(tipo) {
+      tipoSelecionado = tipo;
+      document.getElementById('btn-carro').classList.remove('selected');
+      document.getElementById('btn-moto').classList.remove('selected');
+      document.getElementById('btn-' + tipo.toLowerCase()).classList.add('selected');
+    }
+
+    async function salvar() {
+      const placa = document.getElementById('placa').value.trim();
+      const modelo = document.getElementById('modelo').value.trim();
+      const cor = document.getElementById('cor').value.trim();
+      const msg = document.getElementById('msg');
+
+      if (!tipoSelecionado) { msg.className = 'msg'; msg.textContent = 'Selecione o tipo do veículo.'; return; }
+      if (!placa) { msg.className = 'msg'; msg.textContent = 'Informe a placa.'; return; }
+      if (!modelo) { msg.className = 'msg'; msg.textContent = 'Informe o modelo.'; return; }
+      if (!cor) { msg.className = 'msg'; msg.textContent = 'Informe a cor.'; return; }
+
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/Veiculo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ tipo: tipoSelecionado, placa, modelo, cor })
+      });
+
+      if (res.ok) {
+        msg.className = 'msg ok';
+        msg.textContent = '✅ Veículo cadastrado com sucesso!';
+        tipoSelecionado = '';
+        document.getElementById('placa').value = '';
+        document.getElementById('modelo').value = '';
+        document.getElementById('cor').value = '';
+        document.getElementById('btn-carro').classList.remove('selected');
+        document.getElementById('btn-moto').classList.remove('selected');
+        carregarVeiculos();
+      } else {
+        msg.className = 'msg';
+        msg.textContent = 'Erro ao cadastrar veículo.';
+      }
+    }
+
+    async function carregarVeiculos() {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/Veiculo', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const veiculos = await res.json();
+      const tabela = document.getElementById('tabela');
+      tabela.innerHTML = '';
+      veiculos.forEach(v => {
+        tabela.innerHTML += `
+          <tr>
+            <td style="padding:12px 16px; border-bottom:1px solid #f0f0f0;">${v.tipo}</td>
+            <td style="padding:12px 16px; border-bottom:1px solid #f0f0f0;">${v.placa}</td>
+            <td style="padding:12px 16px; border-bottom:1px solid #f0f0f0;">${v.modelo}</td>
+            <td style="padding:12px 16px; border-bottom:1px solid #f0f0f0;">${v.cor}</td>
+            <td style="padding:12px 16px; border-bottom:1px solid #f0f0f0;">
+              <button onclick="excluir(${v.id})" style="padding:6px 14px; background:#e74c3c; color:white; border:none; border-radius:6px; cursor:pointer;">🗑 Excluir</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    async function excluir(id) {
+      if (!confirm('Deseja excluir este veículo?')) return;
+      const token = localStorage.getItem('token');
+      await fetch(`/api/Veiculo/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      carregarVeiculos();
+    }
+
+    carregarVeiculos();
+  </script>
+</body>
+</html>
